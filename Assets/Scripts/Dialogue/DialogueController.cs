@@ -15,7 +15,10 @@ public class DialogueController : MonoBehaviour
     public GameObject textHUD;
     public TextMeshProUGUI textBox;
     public Image profile;
+    List<string> messages;
     private int currentMessage = 0;
+
+    bool interacting = false;
 
     void Start()
     {
@@ -24,18 +27,27 @@ public class DialogueController : MonoBehaviour
 
     void Update()
     {
-
+        if (interacting && Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            Interact();
+        }
     }
 
-    void NextCandidate(GameObject npc)
+    public void NextCandidate(GameObject npc)
     {
         NPCproperties NPCproperties = npc.GetComponent<NPCproperties>();
         profile.sprite = NPCproperties.face;
-        List<string> messages = NPCproperties.messages;
 
         imageBox.SetActive(true);
         catHUD.SetActive(true);
 
+        interacting = true;
+        messages = NPCproperties.messages;
+        Interact();
+    }
+
+    void Interact()
+    {
         foreach (string message in messages)
         {
             if (currentMessage == 1)
@@ -51,6 +63,7 @@ public class DialogueController : MonoBehaviour
 
     void EndInteraction()
     {
+        interacting = false;
         textHUD.SetActive(false);
     }
 }
