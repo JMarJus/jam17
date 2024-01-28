@@ -1,33 +1,36 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using UnityEditor.VersionControl;
 using UnityEngine;
+using UnityEngine.Timeline;
 using UnityEngine.UI;
 
 public class DialogueController : MonoBehaviour
 {
-    public GameObject cat;
     public GameObject npc;
 
     public GameObject imageBox;
     public GameObject catHUD;
-    public GameObject textHUD;
-    public TextMeshProUGUI textBox;
+    public TextMeshProUGUI catText;
+    public GameObject personHUD;
+    public TextMeshProUGUI personText;
     public Image profile;
-    List<string> messages;
-    private int currentMessage = 0;
+    public Sprite catSprite;
+    public List<string> messages;
+    public int currentMessage = -1;
+    private NPCproperties NPCproperties;
+    public bool npcTurn = false;
+    public bool signal = false;
+
+    public GameObject optionPane;
+
+    public SceneController sceneController;
 
     bool interacting = false;
 
-    void Start()
-    {
-        NPCproperties CATproperties = cat.GetComponent<NPCproperties>();
-    }
-
     void Update()
     {
-        if (interacting && Input.GetKeyDown(KeyCode.Mouse0))
+        if (interacting && Input.GetKeyDown(KeyCode.Mouse0) && npcTurn)
         {
             Interact();
         }
@@ -35,35 +38,51 @@ public class DialogueController : MonoBehaviour
 
     public void NextCandidate(GameObject npc)
     {
-        NPCproperties NPCproperties = npc.GetComponent<NPCproperties>();
+        currentMessage = -1;
+
+        NPCproperties = npc.GetComponent<NPCproperties>();
         profile.sprite = NPCproperties.face;
 
         imageBox.SetActive(true);
         catHUD.SetActive(true);
+        profile.sprite = catSprite;
+        catText.SetText(NPCproperties.presentation);
 
         interacting = true;
         messages = NPCproperties.messages;
         Interact();
     }
 
-    void Interact()
+    public void Interact()
     {
         foreach (string message in messages)
         {
-            if (currentMessage == 1)
+            if (currentMessage == 0)
             {
                 catHUD.SetActive(false);
-                textHUD.SetActive(true);
+                personHUD.SetActive(true);
+                profile.sprite = NPCproperties.face;
+                sceneController.CameraTransition(true);
             }
-            if (currentMessage > messages.Capacity - 1) EndInteraction();
-            else if (currentMessage == messages.IndexOf(message)) textBox.text = message;
+            if (currentMessage > messages.Capacity - 1)
+            {
+                EndInteraction();
+            }
+            else if (currentMessage == messages.IndexOf(message)) personText.SetText(message);
+            if (currentMessage == messages.Capacity - 1)
+            {
+                optionPane.SetActive(true);
+                npcTurn = false;
+            }
         }
         currentMessage++;
-    }
-
-    void EndInteraction()
-    {
-        interacting = false;
-        textHUD.SetActive(false);
+        
+        void EndInteraction()
+        {
+            interacting = false;
+            personHUD.SetActive(false);
+            signal = true;
+            npcTurn = false;
+        }
     }
 }
